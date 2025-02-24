@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import sqlite3 from 'sqlite3';
 
 const app = express();
-const PORT = 5000;
-const NOTES_DIR = 'notes';
+const PORT = 5000; // server listen port
+const NOTES_DIR = 'notes'; // directory where notes db file is
 
 // Initialize SQLite database
 const db = new sqlite3.Database(NOTES_DIR + '/notes.db', (err) => {
@@ -17,6 +17,11 @@ const db = new sqlite3.Database(NOTES_DIR + '/notes.db', (err) => {
 
 // Create notes table if it doesn't exist
 db.run(
+	// each note has:
+	// id:      TEXT   (unique note identifier)
+	// path:    TEXT   (location of note)
+	// content: TEXT   (content of note)
+	// type:    TEXT   (note or directory)
 	`
     CREATE TABLE IF NOT EXISTS notes (
 		id TEXT PRIMARY KEY,
@@ -34,7 +39,7 @@ db.run(
 
 app.use(bodyParser.json());
 
-// Save a new note or update an existing one
+// Create '/save' dir, used to save a new note or update an existing one
 app.post('/save', (req, res) => {
 	const content = req.body.content; // Content is now HTML
 	const noteId = req.body.noteId || uuidv4();
@@ -79,6 +84,7 @@ app.post('/save', (req, res) => {
 	});
 });
 
+//TODO: I dont know what this one is for
 app.post('/createDirectory', (req, res) => {
 	const path = req.body.path;
 	const id = uuidv4();
@@ -97,7 +103,7 @@ app.post('/createDirectory', (req, res) => {
 	);
 });
 
-// Load a specific note
+// Creates '/load/:noteId' dir, used to load a specific note
 app.get('/load/:noteId', (req, res) => {
 	const noteId = req.params.noteId;
 	db.get(`SELECT content, path FROM notes WHERE id = ?`, [noteId], (err, row) => {
@@ -113,7 +119,7 @@ app.get('/load/:noteId', (req, res) => {
 	});
 });
 
-// List all notes
+// Created '/list' dir, used to list all notes
 app.get('/list', (req, res) => {
 	db.all(`SELECT id, path, \`type\` FROM notes`, [], (err, rows) => {
 		if (err) {
@@ -124,6 +130,7 @@ app.get('/list', (req, res) => {
 	});
 });
 
+// Start the server
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 });
