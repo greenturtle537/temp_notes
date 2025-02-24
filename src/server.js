@@ -5,7 +5,7 @@ import sqlite3 from 'sqlite3';
 
 const app = express();
 const PORT = 5000; // server listen port
-const NOTES_DIR = 'notes'; // directory where notes db file is
+const NOTES_DIR = 'notes'; // directory where notes db file is stored
 
 // Initialize SQLite database
 const db = new sqlite3.Database(NOTES_DIR + '/notes.db', (err) => {

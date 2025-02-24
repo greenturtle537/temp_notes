@@ -4,7 +4,7 @@
 	import { Editor } from '@tiptap/core';
 
 	import { saveContent, loadContent } from '$lib/database';
-	import { editorInstance, noteIdInstance } from '$lib/editorStore';
+	import { editorInstance, noteIdInstance, notePathInstance } from '$lib/editorStore';
 
 	import Document from '@tiptap/extension-document';
 	import Paragraph from '@tiptap/extension-paragraph';
@@ -92,7 +92,7 @@
 </script>
 
 <div class="sticky-container">
-	<span>current note: {$noteIdInstance}</span>
+	<span>current note: {$notePathInstance} {$noteIdInstance}</span>
 	<div class="sticky top-0 m-2 grid rounded-full bg-gray-800 p-2">
 		<div class="w-fit place-self-center">
 			{#if $editorInstance}
@@ -141,9 +141,9 @@
 				</button>
 				<button
 					onclick={async () =>
-						$editorInstance &&
+						$notePathInstance &&
 						$noteIdInstance &&
-						(await saveContent($noteIdInstance, $editorInstance, '/stuff/'))}
+						(await saveContent($noteIdInstance, $editorInstance, $notePathInstance))}
 				>
 					Save</button
 				>

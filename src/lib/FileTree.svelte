@@ -3,7 +3,7 @@
 
 	import { saveContent, loadContent } from '$lib/database';
 	import { v4 as uuidv4 } from 'uuid';
-	import { editorInstance, noteIdInstance } from '$lib/editorStore';
+	import { editorInstance, noteIdInstance, notePathInstance } from '$lib/editorStore';
 
 	const API_URL = 'http://localhost:5000';
 
@@ -11,6 +11,7 @@
 
 	//TODO: newNotePath isn't used yet, somehow use it to tell where to make new notes (need to implement proper foldering first)
 	let newNotePath: string = $state('/');
+	let newFolderPath: string = $state('/');
 
 	//TODO: make this not pixels (define it in em or something)
 	let componentWidth = $state(250); // Initial width
@@ -27,21 +28,44 @@
 			localStorage.removeItem('noteId'); // Clear noteId from localStorage
 		}
 		noteIdInstance.set(noteId); // Set the new noteId
+		notePathInstance.set(newNotePath);
 		console.log('Created a new note with ID:', noteId); // debug
 		// After creating the new note, refresh the file tree
 		await loadFileTree();
 	}
 
-	// updates the file tree
+	async function createDirectory() {
+		try {
+			const response = await fetch(`${API_URL}/createDirectory`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ path: newFolderPath + '/' })
+			});
+
+			if (response.ok) {
+				console.log('Directory created successfully');
+				await loadFileTree(); // Refresh the file tree
+			} else {
+				console.error('Failed to create directory');
+			}
+		} catch (error) {
+			console.error('Error creating directory:', error);
+		}
+	}
+
 	async function loadFileTree() {
 		const response = await fetch(`${API_URL}/list`);
 		const data = await response.json();
-		fileTree = buildFileTree(data.items);
+		console.log(data);
+		fileTree = data.items;
 	}
 
 	onMount(async () => {
 		await loadFileTree(); // fill in the file tree
 	});
+	// generates the file tree given data from the server
 
 	// generates the file tree given data from the server
 	function buildFileTree(
@@ -67,7 +91,7 @@
 				if (parent) {
 					parent.children.push(item);
 				} else {
-					tree.push(item); // Add to root
+					tree.push(item); // If parent not found, add to root
 				}
 			} else {
 				tree.push(item); // Add to root
@@ -107,27 +131,56 @@
 		<button onclick={() => console.log(fileTree)}>Log file tree</button>
 		<button onclick={createNewNote}>New Note</button>
 
+		<span>
+			folder path: <input type="text" bind:value={newFolderPath} placeholder="Folder Path" />
+		</span>
+		<span>
+			note path : <input type="text" bind:value={newNotePath} placeholder="Note Path" />
+		</span>
+		<button onclick={createDirectory}>New Folder</button>
+
 		<hr class="w-full py-2" />
 
 		<div
 			class=" grid w-full grid-flow-row grid-cols-1 place-items-start content-start overflow-hidden"
 		>
 			{#each fileTree as item}
-				<button
-					onclick={async () => {
-						$editorInstance &&
-							$noteIdInstance &&
-							(await saveContent($noteIdInstance, $editorInstance, 'stuff/').then(() => {
-								loadContent(item.id, $editorInstance);
-							}));
-						console.log('clicked', item.id);
-						await loadFileTree();
-					}}
-					disabled={!$noteIdInstance}
-					class="w-full cursor-pointer"
-				>
-					{item.path}{item.id}
-				</button>
+				<div class="pl-2">
+					<button
+						onclick={async () => {
+							$editorInstance &&
+								$noteIdInstance &&
+								(await saveContent($noteIdInstance, $editorInstance, 'stuff/').then(() => {
+									loadContent(item.id, $editorInstance);
+								}));
+							console.log('clicked', item.id);
+						}}
+						disabled={!$noteIdInstance}
+						class="w-full cursor-pointer {item.type === 'directory' ? 'text-blue-500' : ''}"
+					>
+						{item.path}{item.id}
+					</button>
+					{#if item.children}
+						{#each item.children as child}
+							<div class="pl-4">
+								<button
+									onclick={async () => {
+										$editorInstance &&
+											$noteIdInstance &&
+											(await saveContent($noteIdInstance, $editorInstance, 'stuff/').then(() => {
+												loadContent(child.id, $editorInstance);
+											}));
+										console.log('clicked', item.id);
+									}}
+									disabled={!$noteIdInstance}
+									class="w-full cursor-pointer"
+								>
+									{child.path}{child.id}
+								</button>
+							</div>
+						{/each}
+					{/if}
+				</div>
 			{/each}
 		</div>
 	</div>

@@ -1,7 +1,7 @@
 import { tick } from 'svelte';
 import { Editor } from '@tiptap/core';
 
-import { noteIdInstance } from './editorStore';
+import { noteIdInstance, notePathInstance } from './editorStore';
 
 const API_URL = 'http://localhost:5000';
 
@@ -46,6 +46,7 @@ export const loadContent = async (noteId: string, editor: Editor) => {
 				if (data.content && editor) {
 					editor.commands.setContent(data.content);
 					noteIdInstance.set(noteId); // Set noteId in the store
+					notePathInstance.set(data.path); // Set notePath in the store
 					console.log(`loaded ${noteId}.`);
 				} else {
 					console.log('No content found on server.');
