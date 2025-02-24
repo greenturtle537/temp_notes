@@ -9,13 +9,15 @@
 
 	let fileTree: Array<{ id: string; path: string; type: string; children: any[] }> = $state([]);
 
+	//TODO: newNotePath isn't used yet, somehow use it to tell where to make new notes (need to implement proper foldering first)
 	let newNotePath: string = $state('/');
 
-	//TODO: make this not pixels
+	//TODO: make this not pixels (define it in em or something)
 	let componentWidth = $state(250); // Initial width
 
-	let isResizing = $state(false);
+	let isResizing = $state(false); // Tracks whether FileTree is currently being resized (used to prevent selection weirdness)
 
+	//TODO: let this create new notes not in the same place always
 	async function createNewNote() {
 		const noteId = uuidv4(); // Generate a new noteId
 		if ($editorInstance) {
@@ -25,11 +27,12 @@
 			localStorage.removeItem('noteId'); // Clear noteId from localStorage
 		}
 		noteIdInstance.set(noteId); // Set the new noteId
-		console.log('Created a new note with ID:', noteId);
+		console.log('Created a new note with ID:', noteId); // debug
 		// After creating the new note, refresh the file tree
 		await loadFileTree();
 	}
 
+	// updates the file tree
 	async function loadFileTree() {
 		const response = await fetch(`${API_URL}/list`);
 		const data = await response.json();
@@ -37,9 +40,10 @@
 	}
 
 	onMount(async () => {
-		await loadFileTree();
+		await loadFileTree(); // fill in the file tree
 	});
 
+	// generates the file tree given data from the server
 	function buildFileTree(
 		items: Array<{ id: string; path: string; type: string; children: any[] }>
 	) {
@@ -73,18 +77,21 @@
 		return tree;
 	}
 
+	// mousedown for the resize element
 	function handleMouseDown(event: MouseEvent) {
 		isResizing = true;
 		document.addEventListener('mousemove', handleMouseMove);
 		document.addEventListener('mouseup', handleMouseUp);
 	}
 
+	// moisemove for the resize element
 	function handleMouseMove(event: MouseEvent) {
 		if (isResizing) {
 			componentWidth = event.clientX; // Update width based on mouse position
 		}
 	}
 
+	// mouseup for the resize element
 	function handleMouseUp() {
 		isResizing = false;
 		document.removeEventListener('mousemove', handleMouseMove);

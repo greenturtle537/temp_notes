@@ -30,16 +30,8 @@
 
 	let editorElement: HTMLDivElement;
 
-	// Subscribe to noteId changes
-	let noteIdValue = $state('');
-	const unsubscribeNoteId = noteIdInstance.subscribe((value) => {
-		if (value) {
-			noteIdValue = value;
-		}
-	});
-
 	onMount(() => {
-		// Check local storage for a previously saved noteId
+		// Check local storage for a previously saved noteId, open that note if it exists
 		if (typeof window !== 'undefined') {
 			const storedNoteId = localStorage.getItem('noteId');
 			if (storedNoteId) {
@@ -47,6 +39,7 @@
 			}
 		}
 
+		// creating the editor instance
 		let editor = new Editor({
 			element: editorElement,
 			extensions: [
@@ -89,22 +82,17 @@
 		editorInstance.set(editor);
 
 		if ($noteIdInstance && editor) {
-			loadContent(noteIdValue, editor);
+			loadContent($noteIdInstance, editor);
 		}
 
 		return () => {
 			editor.destroy();
-			unsubscribeNoteId();
 		};
-	});
-
-	onDestroy(() => {
-		unsubscribeNoteId();
 	});
 </script>
 
 <div class="sticky-container">
-	<span>current note: {noteIdValue}</span>
+	<span>current note: {$noteIdInstance}</span>
 	<div class="sticky top-0 m-2 grid rounded-full bg-gray-800 p-2">
 		<div class="w-fit place-self-center">
 			{#if $editorInstance}
@@ -154,15 +142,17 @@
 				<button
 					onclick={async () =>
 						$editorInstance &&
-						noteIdValue &&
-						(await saveContent(noteIdValue, $editorInstance, '/stuff/'))}
+						$noteIdInstance &&
+						(await saveContent($noteIdInstance, $editorInstance, '/stuff/'))}
 				>
 					Save</button
 				>
 				<button
 					onclick={async () =>
-						$editorInstance && noteIdValue && (await loadContent(noteIdValue, $editorInstance))}
-					disabled={!noteIdValue}
+						$editorInstance &&
+						$noteIdInstance &&
+						(await loadContent($noteIdInstance, $editorInstance))}
+					disabled={!$noteIdInstance}
 				>
 					Load
 				</button>
