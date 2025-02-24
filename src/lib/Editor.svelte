@@ -10,6 +10,9 @@
 	import Paragraph from '@tiptap/extension-paragraph';
 	import Text from '@tiptap/extension-text';
 	import Heading from '@tiptap/extension-heading';
+	import BulletList from '@tiptap/extension-bullet-list';
+	import OrderedList from '@tiptap/extension-ordered-list';
+	import ListItem from '@tiptap/extension-list-item';
 
 	import Bold from '@tiptap/extension-bold';
 	import Code from '@tiptap/extension-code';
@@ -53,7 +56,11 @@
 				Heading,
 				HorizontalRule,
 				Bold,
-				Code,
+				Code.configure({
+					HTMLAttributes: {
+						class: 'p-1 bg-[#212325] rounded-md text-sm'
+					}
+				}),
 				Italic,
 				TextAlign.configure({
 					defaultAlignment: 'left',
@@ -63,9 +70,14 @@
 					lowlight,
 
 					HTMLAttributes: {
-						class: 'p-2 bg-[#212325]'
+						class: 'p-2 bg-[#212325] rounded-md'
 					}
-				})
+				}),
+				BulletList.configure({
+					itemTypeName: 'listItem'
+				}),
+				OrderedList,
+				ListItem
 			],
 			content: '<p>Hello World!</p>', // Initial content
 			onTransaction: () => {
