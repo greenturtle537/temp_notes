@@ -1,11 +1,32 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import sqlite3 from 'sqlite3';
 
 const app = express();
 const PORT = 5000; // server listen port
 const NOTES_DIR = 'notes'; // directory where notes db file is stored
+
+// Add headers before the routes are defined
+app.use(function (req, res, next) {
+
+	// Website you wish to allow to connect
+	res.setHeader('Access-Control-Allow-Origin', '*'); //LINE 5
+  
+	// Request methods you wish to allow
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  
+	// Request headers you wish to allow
+	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  
+	// Set to true if you need the website to include cookies in the requests sent
+	// to the API (e.g. in case you use sessions)
+	res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+	// Pass to next layer of middleware
+	next();
+  });
 
 // Initialize SQLite database
 const db = new sqlite3.Database(NOTES_DIR + '/notes.db', (err) => {
@@ -38,6 +59,7 @@ db.run(
 );
 
 app.use(bodyParser.json());
+app.use(cors());
 
 // Create '/save' dir, used to save a new note or update an existing one
 app.post('/save', (req, res) => {
