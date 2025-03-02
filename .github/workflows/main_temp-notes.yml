@@ -21,13 +21,13 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: '18.x'
 
-      - name: npm install, build, and test
+      - name: npm install, build, and check
         run: |
           npm install
           npm run build --if-present
-          npm run test --if-present
+          npm run check --if-present
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
@@ -63,6 +63,7 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9B9DD598958A4839B36D460D2F42399F }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B5EBA321BFF34654BEA301C4B1CE424D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_66257519CA144AC2B2175C9DF52B62C6 }}
+          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET_9B9DD598958A4839B36D460D2F42399F }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -71,4 +72,3 @@ jobs:
           app-name: 'temp-notes'
           slot-name: 'Production'
           package: .
-          
